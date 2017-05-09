@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import scrapy,re
-from jobStat.items import Urls,workDetails
+from jobStat.items import workDetails
 
 class TestSpider(scrapy.Spider):
     name = "test"
@@ -16,18 +16,20 @@ class TestSpider(scrapy.Spider):
 
     def parse_url(self,response):
         for u in response.xpath('//div[@class="el"]/p/span/a/@href').extract():
-            yield scrapy.Request(u,callback=self.parse_detail)
+            searchUrl=re.findall(r'/(\d+).html',u)[0]
+            yield scrapy.Request(searchUrl,callback=self.parse_detail)
 
     def parse_detail(self,response):
-        p = "(\d+(?:\.\d+)?)(?:\-(\d+(?:\.\d+)?))?(\w+)\/(\w+)"
         item=workDetails()
         inbox=response.xpath('//div[@class="jtag inbox"]/div')
         item['url']=response.url
         item['jobid']=re.findall(r'/(\d+).html',response.url)[0]
+
         item['workName']=response.xpath('//div[@class="tHeader tHjob"]/div/div/h1/@title').extract()[0]
+
         salary=response.xpath('//div[@class="tHeader tHjob"]/div/div/strong/text()').extract()[0]
-        item['salary']=salary
-        '''
+        #item['salary']=salary
+        p = "(\d+(?:\.\d+)?)(?:\-(\d+(?:\.\d+)?))?(\w+)\/(\w+)"
         s=re.findall(p,salary,re.U)
         if len(s[0])==4:
             aver_s=(float(s[0][0])+float((s[0][1] if s[0][1]!='' else 0)))/2
@@ -42,11 +44,27 @@ class TestSpider(scrapy.Spider):
                 aver_s /= 12
             elif s[0][3]==u"时":
                 aver_s *= 8*20.9
+            elif s[0][3]==u"天":
+                aver_s *= 20.9
             item['salary']=aver_s    
         else:
             item['salary']=salary
-        '''
-        item['workYears']=inbox.xpath('./span/text()')[0].extract()
-        item['degree']=inbox.xpath('./span/text()')[1].extract()
+
+        workYears=inbox.xpath('./span/text()')[0].re(u"([\w\-.]+经验)")
+        if len(workYears)==0:
+            item['workYears']=u"无工作经验"
+        else:
+            item['workYears']=workYears[0]
+
+        degree=inbox.xpath('./span/text()')[1].re(u"(初中及以下|中技|高中|中专|大专|本科|硕士|博士)")
+        if len(degree)==0:
+            degree = inbox.xpath('./span/text()')[0].re(u"(初中及以下|中技|高中|中专|大专|本科|硕士|博士)")
+            if len(degree)==0:
+                item['degree']=u"学历不限"
+            else:
+                item['degree'] = degree[0]
+        else:
+            item['degree']=degree[0]
+
         item['jobType']=response.xpath('//p[@class="msg ltype"]/text()').extract()[0].split('|')[2].strip()
         return item

@@ -19,5 +19,5 @@ class TestpachongPipeline(object):
     def process_item(self, item, spider):
         line = json.dumps(dict(item))
         line=line.decode('unicode_escape').strip()
-        self.coll.insert(json.loads(line))
+        self.coll.save(json.loads(line))
         return item
