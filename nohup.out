@@ -1,0 +1,26 @@
+Error in atexit._run_exitfuncs:
+Traceback (most recent call last):
+  File "d:\python27\lib\atexit.py", line 24, in _run_exitfuncs
+    func(*targs, **kargs)
+  File "d:\python27\lib\site-packages\pymongo\periodic_executor.py", line 167, in _shutdown_executors
+    executor.join(1)
+  File "d:\python27\lib\site-packages\pymongo\periodic_executor.py", line 96, in join
+    self._thread.join(timeout)
+  File "d:\python27\lib\threading.py", line 951, in join
+    self.__block.wait(delay)
+  File "d:\python27\lib\threading.py", line 359, in wait
+    _sleep(delay)
+IOError: [Errno 4] Interrupted function call
+Error in sys.exitfunc:
+Traceback (most recent call last):
+  File "d:\python27\lib\atexit.py", line 24, in _run_exitfuncs
+    func(*targs, **kargs)
+  File "d:\python27\lib\site-packages\pymongo\periodic_executor.py", line 167, in _shutdown_executors
+    executor.join(1)
+  File "d:\python27\lib\site-packages\pymongo\periodic_executor.py", line 96, in join
+    self._thread.join(timeout)
+  File "d:\python27\lib\threading.py", line 951, in join
+    self.__block.wait(delay)
+  File "d:\python27\lib\threading.py", line 359, in wait
+    _sleep(delay)
+IOError: [Errno 4] Interrupted function call
