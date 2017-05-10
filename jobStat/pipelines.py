@@ -10,7 +10,7 @@ import json
 import codecs
 import pymongo
 
-class TestpachongPipeline(object):
+class jobStatPipeline(object):
 
     def __init__(self):
         con=pymongo.MongoClient('localhost',27017)
