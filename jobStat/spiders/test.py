@@ -29,9 +29,9 @@ C%26', 'slife': 'lastvisit%3D010000%26%7C%26lowbrowser%3Dnot', 'partner': '51job
                       headers=self.headers, meta=self.meta)
 
     def parse(self, response):
-        #pages=response.xpath('//div[@class="p_in"]/span/text()')[0].re(u'共(\d+)页')
-        #pages=int(pages[0])
-        for i in range(1,3):
+        pages=response.xpath('//div[@class="p_in"]/span/text()')[0].re(u'共(\d+)页')
+        pages=int(pages[0])
+        for i in range(1,pages+1):
             url='http://search.51job.com/list/010000,000000,0000,00,0,99,%2B,2,'+str(i)+'.html?lang=c&stype=1&postchannel=0000&workyear=99&cotype=99&degreefrom=99&jobterm=99&companysize=99&lonlat=0%2C0&radius=-1&ord_field=0&confirmdate=9&fromType=5&dibiaoid=0&address=&line=&specialarea=00&from=&welfare='
             yield scrapy.Request(url,cookies=self.cookies,headers=self.headers, meta=self.meta,callback=self.parse_url)
 
