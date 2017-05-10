@@ -38,7 +38,7 @@ C%26', 'slife': 'lastvisit%3D010000%26%7C%26lowbrowser%3Dnot', 'partner': '51job
     def parse_url(self,response):
         for u in response.xpath('//div[@class="el"]/p/span/a/@href').extract():
             searchUrl=re.findall(r'/(\d+).html',u)[0]
-            yield scrapy.Request(searchUrl,ookies=self.cookies,\
+            yield scrapy.Request(searchUrl,cookies=self.cookies,\
                       headers=self.headers, meta=self.meta,callback=self.parse_detail)
 
     def parse_detail(self,response):

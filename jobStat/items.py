@@ -21,3 +21,6 @@ class workDetails(scrapy.Item):
     degree = scrapy.Field()
     jobType = scrapy.Field()
     jobid = scrapy.Field()
+    comType = scrapy.Field()
+    comName = scrapy.Field()
+    comIndustry = scrapy.Field()
