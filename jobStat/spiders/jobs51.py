@@ -78,5 +78,5 @@ class TestSpider(scrapy.Spider):
         item['comType'] = meta['comType']
         item['comName'] = meta['comName']
         item['comIndustry']=response.xpath("//aside[@class='ldes ']/p/font/text()")[2].extract()
-        print item
+        #print item
         return item
