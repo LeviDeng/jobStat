@@ -20,6 +20,7 @@ class jobStatPipeline(object):
         line = json.dumps(dict(item))
         line=line.decode('unicode_escape').strip()
         data=json.loads(line)
-        self.coll.save(data)
-        print "Data saved,jobid:%d"%data['jobid']
+        if self.coll.find({"jobid":data['jobid']})==0:
+            self.coll.insert_one(data)
+            print "Data saved,jobid:%d"%int(data['jobid'])
         return item
