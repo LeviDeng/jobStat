@@ -54,7 +54,7 @@ class TestSpider(scrapy.Spider):
                         aver_s *= 100
                     if s[0][3] == u"年":
                         aver_s /= 12
-                    elif s[0][3] == u"时":
+                    elif s[0][3] == u"小":
                         aver_s *= 8 * 20.9
                     elif s[0][3] == u"天":
                         aver_s *= 20.9
