@@ -19,5 +19,7 @@ class jobStatPipeline(object):
     def process_item(self, item, spider):
         line = json.dumps(dict(item))
         line=line.decode('unicode_escape').strip()
-        self.coll.save(json.loads(line))
+        data=json.loads(line)
+        self.coll.save(data)
+        print "Data saved,jobid:%d"%data['jobid']
         return item
