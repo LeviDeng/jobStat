@@ -7,7 +7,6 @@
 
 
 import json
-import codecs
 import pymongo
 
 class jobStatPipeline(object):
