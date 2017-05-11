@@ -25,7 +25,7 @@ class TestSpider(scrapy.Spider):
         for h in href:
             url=h.xpath("./@href").extract()[0]
             jobid=re.findall(r'&jobid=(\d+)',url)[0]
-            if coll.find({"jobid":jobid}).count()==0:
+            if coll.find({"jobid":int(jobid)}).count()==0:
                 yield scrapy.Request(url,callback=self.parse_detail)
 
     def parse_detail(self,response):
