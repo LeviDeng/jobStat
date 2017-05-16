@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import scrapy,re
+import scrapy,re,time
 from jobStat.items import workDetails
 import pymongo
 
@@ -25,8 +25,8 @@ class TestSpider(scrapy.Spider):
         for h in href:
             url=h.xpath("./@href").extract()[0]
             jobid=re.findall(r'&jobid=(\d+)',url)[0]
-            if coll.find({"jobid":int(jobid)}).count()==0:
-                yield scrapy.Request(url,callback=self.parse_detail)
+            #if coll.find({"jobid":jobid}).count()==0:
+            yield scrapy.Request(url,callback=self.parse_detail)
 
     def parse_detail(self,response):
         #item=workDetails()
@@ -36,6 +36,7 @@ class TestSpider(scrapy.Spider):
         meta['workName'] = response.xpath("//p[@class='xtit']/text()").extract()[0]
 
         Details=response.xpath("//div[@class='xqd']/label")
+        meta['comType']=meta['salary']=meta['degree']=meta['workYears']=meta['employNums']=None
         for l in Details:
             if l.xpath("./span/text()").re(u"性质"):
                 meta['comType'] = l.xpath("./text()").extract()[0].strip()
@@ -62,8 +63,8 @@ class TestSpider(scrapy.Spider):
                 else:
                     meta['salary'] = salary
             if l.xpath("./span/text()").re(u"招聘"):
-                Content = l.xpath("./text()").extract()[0].strip()
                 degree=workYears=employNums=None
+                Content = l.xpath("./text()").extract()[0].strip()
                 try:
                     degree=re.findall(u"(初中及以下|高中|中技|中专|大专|本科|硕士|博士|学历不限)",Content,re.U)[0]
                 except:
@@ -73,15 +74,19 @@ class TestSpider(scrapy.Spider):
                 except:
                     pass
                 try:
-                    employNums=re.findall(u"(?:招聘)?(\d+)人",Content,re.U)[0]
+                    employNums=re.findall(u"(?:招聘)?(\w+)人",Content,re.U)[0]
                 except:
                     pass
                 meta['degree'] = degree
                 meta['workYears'] = workYears
-                meta['employNums'] = employNums
+                try:
+                    meta['employNums'] = int(employNums)
+                except:
+                    meta['employNums'] = employNums
 
         meta['comName']=response.xpath("//a[@class='xqa']/text()").extract()[0]
         comUrl=response.xpath("//a[@class='xqa']/@href").extract()[0]
+        meta['date']=time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())
         yield scrapy.Request(comUrl,meta=meta,callback=self.parse_industry)
 
     def parse_industry(self,response):
@@ -95,6 +100,12 @@ class TestSpider(scrapy.Spider):
         item['jobid'] = meta['jobid']
         item['comType'] = meta['comType']
         item['comName'] = meta['comName']
-        item['comIndustry']=response.xpath("//aside")[1].xpath("./p/font/text()")[2].extract()
+        item['employNums'] = meta['employNums']
+        item['date'] = meta['date']
+        item['comIndustry']=None
+        for p in response.xpath("//aside")[1].xpath("./p"):
+            if p.xpath("./span/text()").re(u"行业"):
+                item['comIndustry']=p.xpath("./font/text()")[0].extract()
+
         #print item
         return item

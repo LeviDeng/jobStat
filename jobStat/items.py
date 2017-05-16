@@ -25,3 +25,4 @@ class workDetails(scrapy.Item):
     comName = scrapy.Field()
     comIndustry = scrapy.Field()
     employNums = scrapy.Field()
+    date = scrapy.Field()

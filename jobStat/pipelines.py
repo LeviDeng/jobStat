@@ -19,6 +19,6 @@ class jobStatPipeline(object):
         line = json.dumps(dict(item))
         line=line.decode('unicode_escape').strip()
         data=json.loads(line)
-        self.coll.insert_one(data)
+        self.coll.update_one({'jobid':data['jobid']},{'$set':data},upsert=True)
         print "Data saved,jobid:%d"%int(data['jobid'])
         return item
