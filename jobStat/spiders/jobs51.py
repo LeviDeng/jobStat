@@ -63,7 +63,7 @@ class TestSpider(scrapy.Spider):
                     meta['salary'] = salary
             if l.xpath("./span/text()").re(u"招聘"):
                 Content = l.xpath("./text()").extract()[0].strip()
-                degree=workYears=None
+                degree=workYears=employNums=None
                 try:
                     degree=re.findall(u"(初中及以下|高中|中技|中专|大专|本科|硕士|博士|学历不限)",Content,re.U)[0]
                 except:
@@ -72,8 +72,13 @@ class TestSpider(scrapy.Spider):
                     workYears=re.findall(u"([^\|]+经验[^\|]+)",Content,re.U)[0]
                 except:
                     pass
+                try:
+                    employNums=re.findall(u"(?:招聘)?(\d+)人",Content,re.U)[0]
+                except:
+                    pass
                 meta['degree'] = degree
                 meta['workYears'] = workYears
+                meta['employNums'] = employNums
 
         meta['comName']=response.xpath("//a[@class='xqa']/text()").extract()[0]
         comUrl=response.xpath("//a[@class='xqa']/@href").extract()[0]
