@@ -4,7 +4,7 @@ from jobStat.items import workDetails
 import requests
 from lxml import etree
 from time import sleep
-#import pymongo
+import pymongo
 
 class TestSpider(scrapy.Spider):
     name = "jobs51"
@@ -60,16 +60,19 @@ class TestSpider(scrapy.Spider):
     '''
     def parse_detail(self,response):
         #item=workDetails()
-        meta={}
-        meta['url']=response.url
-        meta['jobid']=re.findall(r'&jobid=(\d+)',response.url)[0]
-        meta['workName'] = response.xpath("//p[@class='xtit']/text()").extract_first()
+        item = workDetails()
+        con=pymongo.MongoClient('localhost',27017)
+        coll=con['jobs51']['coms']
+        #meta={}
+        item['url']=response.url
+        item['jobid']=re.findall(r'&jobid=(\d+)',response.url)[0]
+        item['workName'] = response.xpath("//p[@class='xtit']/text()").extract_first()
 
         Details=response.xpath("//div[@class='xqd']/label")
-        meta['comType']=meta['salary']=meta['degree']=meta['workYears']=meta['employNums']=None
+        item['comType']=item['salary']=item['degree']=item['workYears']=item['employNums']=None
         for l in Details:
             if l.xpath("./span/text()").re(u"性质"):
-                meta['comType'] = l.xpath("./text()").extract_first()
+                item['comType'] = l.xpath("./text()").extract_first()
             if l.xpath("./span/text()").re(u"薪资"):
                 salary = l.xpath("./text()").extract_first()
                 # item['salary']=salary
@@ -89,9 +92,9 @@ class TestSpider(scrapy.Spider):
                         aver_s *= 8 * 20.9
                     elif s[0][3] == u"天":
                         aver_s *= 20.9
-                    meta['salary'] = aver_s
+                    item['salary'] = aver_s
                 else:
-                    meta['salary'] = salary
+                    item['salary'] = salary
             if l.xpath("./span/text()").re(u"招聘"):
                 degree=workYears=employNums=None
                 Content = l.xpath("./text()").extract_first()
@@ -107,17 +110,35 @@ class TestSpider(scrapy.Spider):
                     employNums=re.findall(u"(?:招聘)?(\w+)人",Content,re.U)[0]
                 except:
                     pass
-                meta['degree'] = degree
-                meta['workYears'] = workYears
+                item['degree'] = degree
+                item['workYears'] = workYears
                 try:
-                    meta['employNums'] = int(employNums)
+                    item['employNums'] = int(employNums)
                 except:
-                    meta['employNums'] = employNums
+                    item['employNums'] = employNums
 
-        meta['comName']=response.xpath("//a[@class='xqa']/text()").extract_first()
+        item['comName']=response.xpath("//a[@class='xqa']/text()").extract_first()
         comUrl=response.xpath("//a[@class='xqa']/@href").extract_first()
-        meta['date']=time.strftime("%Y-%m-%d",time.localtime())
-        yield scrapy.Request(comUrl,meta=meta,callback=self.parse_industry,dont_filter=True)
+        coid=re.findall("coid=(\d+)",comUrl)[0]
+        if coll.find({'coid':coid}):
+            item['comIndustry']=coll.find({'coid':coid})[0]['comIndustry']
+        else:
+            sleep(3)
+            res=requests.get(comUrl)
+            html=etree.HTML(res.text)
+            for p in html.xpath("//aside")[1].xpath("./p"):
+                if re.findall(u"行业",p.xpath("./span/text()")[0].encode("raw_unicode_escape").decode("utf8"),re.U):
+                    item['comIndustry'] = p.xpath("./font/text()")[0].encode("raw_unicode_escape").decode("utf8")
+            coll.insert_one({
+                'coid':coid,
+                'comIndustry':item['comIndustry'],
+                'comName':item['comName'],
+            })
+        item['comIND']=item['comIndustry'].split()[0]
+
+        item['date']=time.strftime("%Y-%m-%d",time.localtime())
+        return item
+        #yield scrapy.Request(comUrl,meta=meta,callback=self.parse_industry,dont_filter=True)
 
     def parse_industry(self,response):
         item=workDetails()
