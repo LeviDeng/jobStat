@@ -5,7 +5,7 @@ import pymongo
 
 class TestSpider(scrapy.Spider):
     name = "jobs51"
-    allowed_domains = ["51job.com"]
+    #allowed_domains = ["51job.com"]
     start_urls = ["http://m.51job.com/search/joblist.php?jobarea=010000&issuedate=0"]
     #item=workDetails()
 
