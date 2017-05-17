@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
 import scrapy,re,time
 from jobStat.items import workDetails
-import pymongo
+import requests
+from lxml import etree
+from time import sleep
+#import pymongo
 
 class TestSpider(scrapy.Spider):
     name = "jobs51"
     #allowed_domains = ["51job.com"]
     start_urls = ["http://m.51job.com/search/joblist.php?jobarea=010000&issuedate=0"]
+    jobIDs=[]
+    jobidFile="jobIDs_2017-05-17.txt"
     #item=workDetails()
 
     #def start_requests(self):
@@ -15,19 +20,44 @@ class TestSpider(scrapy.Spider):
     def parse(self, response):
         results=response.xpath("//p[@class='result']").re("(\d+)")[0]
         pages=int(int(results)/30)
+        jobids=self.get_jobid_from_file(self.jobidFile)
+        #self.get_jobid(pages)
+        #jobids=self.jobIDs
+        for j in jobids:
+            u="http://m.51job.com/search/jobdetail.php?jobtype=0&jobid=%d"%int(j.strip())
+            yield scrapy.Request(u,callback=self.parse_detail)
+
+    def get_jobid_from_file(self,filename):
+        f=open(filename)
+        content=f.readlines()
+        return content
+
+    def get_jobid(self,pages):
         for i in range(pages):
             url='http://m.51job.com/search/joblist.php?jobarea=010000&issuedate=0&pageno=%d'%i
-            yield scrapy.Request(url,callback=self.parse_url)
+            res=requests.get(url)
+            html=etree.HTML(res.text)
+            href = html.xpath("//div[@class='jblist res']/a")
+            for h in href:
+                u = h.xpath("./@href")[0]
+                jobid = re.findall(r'&jobid=(\d+)', u)[0]
+                self.jobIDs.append(int(jobid))
+        with open("jobIDs_%s.txt"%time.strftime("%Y-%m-%d",time.localtime()),'w') as f:
+            for j in self.jobIDs:
+                f.write(str(j)+'\n')
 
+
+    '''
     def parse_url(self,response):
         href = response.xpath("//div[@class='jblist res']/a")
         coll=pymongo.MongoClient('localhost',27017)['jobs51']['jobs']
         for h in href:
             url=h.xpath("./@href").extract_first()
             jobid=re.findall(r'&jobid=(\d+)',url)[0]
+            self.jobIDs.append(int(jobid))
             #if coll.find({"jobid":jobid}).count()==0:
             yield scrapy.Request(url,callback=self.parse_detail)
-
+    '''
     def parse_detail(self,response):
         #item=workDetails()
         meta={}
@@ -87,7 +117,7 @@ class TestSpider(scrapy.Spider):
         meta['comName']=response.xpath("//a[@class='xqa']/text()").extract_first()
         comUrl=response.xpath("//a[@class='xqa']/@href").extract_first()
         meta['date']=time.strftime("%Y-%m-%d",time.localtime())
-        yield scrapy.Request(comUrl,meta=meta,callback=self.parse_industry)
+        yield scrapy.Request(comUrl,meta=meta,callback=self.parse_industry,dont_filter=True)
 
     def parse_industry(self,response):
         item=workDetails()
