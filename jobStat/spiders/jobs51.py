@@ -23,7 +23,7 @@ class TestSpider(scrapy.Spider):
         href = response.xpath("//div[@class='jblist res']/a")
         coll=pymongo.MongoClient('localhost',27017)['jobs51']['jobs']
         for h in href:
-            url=h.xpath("./@href").extract()[0]
+            url=h.xpath("./@href").extract_first()
             jobid=re.findall(r'&jobid=(\d+)',url)[0]
             #if coll.find({"jobid":jobid}).count()==0:
             yield scrapy.Request(url,callback=self.parse_detail)
@@ -33,15 +33,15 @@ class TestSpider(scrapy.Spider):
         meta={}
         meta['url']=response.url
         meta['jobid']=re.findall(r'&jobid=(\d+)',response.url)[0]
-        meta['workName'] = response.xpath("//p[@class='xtit']/text()").extract()[0]
+        meta['workName'] = response.xpath("//p[@class='xtit']/text()").extract_first()
 
         Details=response.xpath("//div[@class='xqd']/label")
         meta['comType']=meta['salary']=meta['degree']=meta['workYears']=meta['employNums']=None
         for l in Details:
             if l.xpath("./span/text()").re(u"性质"):
-                meta['comType'] = l.xpath("./text()").extract()[0].strip()
+                meta['comType'] = l.xpath("./text()").extract_first()
             if l.xpath("./span/text()").re(u"薪资"):
-                salary = l.xpath("./text()").extract()[0].strip()
+                salary = l.xpath("./text()").extract_first()
                 # item['salary']=salary
                 p = "(\d+(?:\.\d+)?)(?:\-(\d+(?:\.\d+)?))?(\w+)\/(\w+)"
                 s = re.findall(p, salary, re.U)
@@ -64,7 +64,7 @@ class TestSpider(scrapy.Spider):
                     meta['salary'] = salary
             if l.xpath("./span/text()").re(u"招聘"):
                 degree=workYears=employNums=None
-                Content = l.xpath("./text()").extract()[0].strip()
+                Content = l.xpath("./text()").extract_first()
                 try:
                     degree=re.findall(u"(初中及以下|高中|中技|中专|大专|本科|硕士|博士|学历不限)",Content,re.U)[0]
                 except:
@@ -84,28 +84,58 @@ class TestSpider(scrapy.Spider):
                 except:
                     meta['employNums'] = employNums
 
-        meta['comName']=response.xpath("//a[@class='xqa']/text()").extract()[0]
-        comUrl=response.xpath("//a[@class='xqa']/@href").extract()[0]
-        meta['date']=time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())
+        meta['comName']=response.xpath("//a[@class='xqa']/text()").extract_first()
+        comUrl=response.xpath("//a[@class='xqa']/@href").extract_first()
+        meta['date']=time.strftime("%Y-%m-%d",time.localtime())
         yield scrapy.Request(comUrl,meta=meta,callback=self.parse_industry)
 
     def parse_industry(self,response):
         item=workDetails()
         meta=response.meta
-        item['url']=meta['url']
-        item['workName'] = meta['workName']
-        item['salary'] = meta['salary']
-        item['workYears'] = meta['workYears']
-        item['degree'] = meta['degree']
-        item['jobid'] = meta['jobid']
-        item['comType'] = meta['comType']
-        item['comName'] = meta['comName']
-        item['employNums'] = meta['employNums']
-        item['date'] = meta['date']
+        try:
+            item['url']=meta['url']
+        except:
+            pass
+        try:
+            item['workName'] = meta['workName']
+        except:
+            pass
+        try:
+            item['salary'] = meta['salary']
+        except:
+            pass
+        try:
+            item['workYears'] = meta['workYears']
+        except:
+            pass
+        try:
+            item['degree'] = meta['degree']
+        except:
+            pass
+        try:
+            item['jobid'] = meta['jobid']
+        except:
+            pass
+        try:
+            item['comType'] = meta['comType']
+        except:
+            pass
+        try:
+            item['comName'] = meta['comName']
+        except:
+            pass
+        try:
+            item['employNums'] = meta['employNums']
+        except:
+            pass
+        try:
+            item['date'] = meta['date']
+        except:
+            pass
         item['comIndustry']=None
         for p in response.xpath("//aside")[1].xpath("./p"):
             if p.xpath("./span/text()").re(u"行业"):
-                item['comIndustry']=p.xpath("./font/text()")[0].extract()
+                item['comIndustry']=p.xpath("./font/text()").extract_first()
 
         #print item
         return item
