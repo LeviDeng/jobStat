@@ -120,7 +120,7 @@ class TestSpider(scrapy.Spider):
         item['comName']=response.xpath("//a[@class='xqa']/text()").extract_first()
         comUrl=response.xpath("//a[@class='xqa']/@href").extract_first()
         coid=re.findall("coid=(\d+)",comUrl)[0]
-        if coll.find({'coid':coid}):
+        if coll.find({'coid':coid}).count()==1:
             item['comIndustry']=coll.find({'coid':coid})[0]['comIndustry']
         else:
             sleep(3)
