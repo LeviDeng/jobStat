@@ -11,7 +11,7 @@ class TestSpider(scrapy.Spider):
     #allowed_domains = ["51job.com"]
     start_urls = ["http://m.51job.com/search/joblist.php?jobarea=010000&issuedate=0"]
     jobIDs=[]
-    jobidFile="jobIDs_2017-05-17.txt"
+    jobidFile="jobIDs_2017-05-22.txt"
     #item=workDetails()
 
     #def start_requests(self):

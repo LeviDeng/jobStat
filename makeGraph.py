@@ -137,57 +137,58 @@ def writeExcel(filename):
     for j in coll.find():
         try:
             salary=float(j['salary'])
+            enum=int(j['employNums'])
             #comIndustry = j['comIND']
             if salary < 3000:
-                x1[0] += 1
+                x1[0] += enum
                 if j['comIND'] not in z:
-                    z[j['comIND']] = [1, 0, 0, 0, 0, 0]
+                    z[j['comIND']] = [enum, 0, 0, 0, 0, 0]
                 else:
-                    z[j['comIND']][0] += 1
+                    z[j['comIND']][0] += enum
             elif salary > 3000 and salary <= 5000:
-                x1[1] += 1
+                x1[1] += enum
                 if j['comIND'] not in z:
-                    z[j['comIND']] = [0, 1, 0, 0, 0, 0]
+                    z[j['comIND']] = [0, enum, 0, 0, 0, 0]
                 else:
-                    z[j['comIND']][1] += 1
+                    z[j['comIND']][1] += enum
             elif salary > 5000 and salary <= 8000:
-                x1[2] += 1
+                x1[2] += enum
                 if j['comIND'] not in z:
-                    z[j['comIND']] = [0, 0, 1, 0, 0, 0]
+                    z[j['comIND']] = [0, 0, enum, 0, 0, 0]
                 else:
-                    z[j['comIND']][2] += 1
+                    z[j['comIND']][2] += enum
             elif salary > 8000 and salary <= 15000:
-                x1[3] += 1
+                x1[3] += enum
                 if j['comIND'] not in z:
-                    z[j['comIND']] = [0, 0, 0, 1, 0, 0]
+                    z[j['comIND']] = [0, 0, 0, enum, 0, 0]
                 else:
-                    z[j['comIND']][3] += 1
+                    z[j['comIND']][3] += enum
             elif salary > 15000 and salary <= 30000:
-                x1[4] += 1
+                x1[4] += enum
                 if j['comIND'] not in z:
-                    z[j['comIND']] = [0, 0, 0, 0, 1, 0]
+                    z[j['comIND']] = [0, 0, 0, 0, enum, 0]
                 else:
-                    z[j['comIND']][4] += 1
+                    z[j['comIND']][4] += enum
             elif salary > 30000:
-                x1[5] += 1
+                x1[5] += enum
                 if j['comIND'] not in z:
-                    z[j['comIND']] = [0, 0, 0, 0, 0, 1]
+                    z[j['comIND']] = [0, 0, 0, 0, 0, enum]
                 else:
-                    z[j['comIND']][5] += 1
-
-        except KeyError,TypeError:
+                    z[j['comIND']][5] += enum
+        except :
             pass
 
     for i,n in enumerate(x1):
         ws.write(1,i+1,n)
-    sum=[0]*(len(z.keys()))
+    ws.write(1,7,sum(x1,0))
+    sums=[0]*(len(z.keys()))
     for i,k in enumerate(z.keys()):
         ws.write(i+2,0,k)
         for j,v in enumerate(z[k]):
             ws.write(i+2,j+1,v)
-            sum[i] += int(v)
+            sums[i] += int(v)
     for i in range(len(z)):
-        ws.write(i+2,7,sum[i])
+        ws.write(i+2,7,sums[i])
 
     wdata.save(FILENAME)
 

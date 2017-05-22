@@ -13,7 +13,7 @@ class jobStatPipeline(object):
 
     def __init__(self):
         con=pymongo.MongoClient('localhost',27017)
-        self.coll=con['jobs51']['jobs']
+        self.coll=con['jobs51']['jobs_sh']
 
     def process_item(self, item, spider):
         line = json.dumps(dict(item))
