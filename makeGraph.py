@@ -7,6 +7,18 @@ import matplotlib.patches as patches
 import xlrd,xlutils.copy,xlwt,os
 
 FILENAME="statResult.xls"
+BLACKLIST="blacklist.txt"
+FILTER="filter.txt"
+with open(BLACKLIST) as f:
+    blacklist=[l.strip().decode("gbk") for l in f]
+
+with open(FILTER) as f:
+    filter_string = '('
+    for l in f:
+        filter_string += l.strip()+'|'
+    s=list(filter_string)
+    s[-1]=')'
+    filter_string=''.join(s)
 
 def getSalary(job):
     p = "(\d+(?:\.\d+)?)(?:\-(\d+(?:\.\d+)?))?(\w+)\/(\w+)"
@@ -119,7 +131,12 @@ class Graphs():
         plt.show()
 
 def writeExcel(filename):
-    if not os.path.exists(FILENAME):
+    if os.path.exists(FILENAME):
+        os.remove(os.getcwd()+'\\'+FILENAME)
+        wb = xlwt.Workbook()
+        ws = wb.add_sheet("1")
+        wb.save(FILENAME)
+    else:
         wb=xlwt.Workbook()
         ws=wb.add_sheet("1")
         wb.save(FILENAME)
@@ -135,48 +152,49 @@ def writeExcel(filename):
         ws.write(0,i+1,v)
 
     for j in coll.find():
-        try:
-            salary=float(j['salary'])
-            enum=int(j['employNums'])
-            #comIndustry = j['comIND']
-            if salary < 3000:
-                x1[0] += enum
-                if j['comIND'] not in z:
-                    z[j['comIND']] = [enum, 0, 0, 0, 0, 0]
-                else:
-                    z[j['comIND']][0] += enum
-            elif salary > 3000 and salary <= 5000:
-                x1[1] += enum
-                if j['comIND'] not in z:
-                    z[j['comIND']] = [0, enum, 0, 0, 0, 0]
-                else:
-                    z[j['comIND']][1] += enum
-            elif salary > 5000 and salary <= 8000:
-                x1[2] += enum
-                if j['comIND'] not in z:
-                    z[j['comIND']] = [0, 0, enum, 0, 0, 0]
-                else:
-                    z[j['comIND']][2] += enum
-            elif salary > 8000 and salary <= 15000:
-                x1[3] += enum
-                if j['comIND'] not in z:
-                    z[j['comIND']] = [0, 0, 0, enum, 0, 0]
-                else:
-                    z[j['comIND']][3] += enum
-            elif salary > 15000 and salary <= 30000:
-                x1[4] += enum
-                if j['comIND'] not in z:
-                    z[j['comIND']] = [0, 0, 0, 0, enum, 0]
-                else:
-                    z[j['comIND']][4] += enum
-            elif salary > 30000:
-                x1[5] += enum
-                if j['comIND'] not in z:
-                    z[j['comIND']] = [0, 0, 0, 0, 0, enum]
-                else:
-                    z[j['comIND']][5] += enum
-        except :
-            pass
+        if j['comName'] not in blacklist and not re.search(filter_string,j['workName'].encode('utf8')):
+            try:
+                salary=float(j['salary'])
+                enum=int(j['employNums'])
+                #comIndustry = j['comIND']
+                if salary < 3000:
+                    x1[0] += enum
+                    if j['comIND'] not in z:
+                        z[j['comIND']] = [enum, 0, 0, 0, 0, 0]
+                    else:
+                        z[j['comIND']][0] += enum
+                elif salary > 3000 and salary <= 5000:
+                    x1[1] += enum
+                    if j['comIND'] not in z:
+                        z[j['comIND']] = [0, enum, 0, 0, 0, 0]
+                    else:
+                        z[j['comIND']][1] += enum
+                elif salary > 5000 and salary <= 8000:
+                    x1[2] += enum
+                    if j['comIND'] not in z:
+                        z[j['comIND']] = [0, 0, enum, 0, 0, 0]
+                    else:
+                        z[j['comIND']][2] += enum
+                elif salary > 8000 and salary <= 15000:
+                    x1[3] += enum
+                    if j['comIND'] not in z:
+                        z[j['comIND']] = [0, 0, 0, enum, 0, 0]
+                    else:
+                        z[j['comIND']][3] += enum
+                elif salary > 15000 and salary <= 30000:
+                    x1[4] += enum
+                    if j['comIND'] not in z:
+                        z[j['comIND']] = [0, 0, 0, 0, enum, 0]
+                    else:
+                        z[j['comIND']][4] += enum
+                elif salary > 30000:
+                    x1[5] += enum
+                    if j['comIND'] not in z:
+                        z[j['comIND']] = [0, 0, 0, 0, 0, enum]
+                    else:
+                        z[j['comIND']][5] += enum
+            except :
+                pass
 
     for i,n in enumerate(x1):
         ws.write(1,i+1,n)
